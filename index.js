@@ -1,29 +1,55 @@
 /**
  * react-native-easy-toast
- * https://github.com/crazycodeboy/react-native-easy-toast
- * Email:crazycodeboy@gmail.com
- * Blog:http://www.devio.org/
+ * https://github.com/hd1001/react-native-easy-toast
+ * Email:hhttw@163.com
+ * Blog:cnblog.com/farmkids
  * @flow
  */
 
-import React, {Component} from 'react';
+import React, { Component } from 'react'
+
 import {
     StyleSheet,
     View,
+    Image,
     Animated,
     Dimensions,
     Text,
 } from 'react-native'
 
-export const DURATION = { 
-    LENGTH_LONG: 2000, 
+import { _getWidth, _getHeight } from '../../lib/px2dp-helper'
+const { height, width } = Dimensions.get('window');
+
+export const DURATION = {
+    LENGTH_LONG: 2000,
     LENGTH_SHORT: 500,
     FOREVER: 0,
 };
 
-const {height, width} = Dimensions.get('window');
+const styles = StyleSheet.create({
+    toastContainer: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+    },
+    toastContent: {
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#414141',
+        width: _getWidth(428),
+        height: _getHeight(152)
+    },
+    text: {
+        alignSelf: 'center',
+        color: '#fff',
+        fontSize: _getHeight(28),
+        fontWeight: 'bold'
+    }
+});
 
-export default class Toast extends Component {
+export class Toast extends Component {
 
     constructor(props) {
         super(props);
@@ -51,14 +77,14 @@ export default class Toast extends Component {
             }
         ).start(() => {
             this.isShow = true;
-            if(duration !== DURATION.FOREVER) this.close();
+            if (duration !== DURATION.FOREVER) this.close();
         });
     }
 
-    close( duration ) {
+    close(duration) {
         let delay = typeof duration === 'undefined' ? this.duration : duration;
 
-        if(delay === DURATION.FOREVER) delay = this.props.defaultCloseDelay || 250;
+        if (delay === DURATION.FOREVER) delay = this.props.defaultCloseDelay || 250;
 
         if (!this.isShow && !this.state.isShow) return;
         this.timer && clearTimeout(this.timer);
@@ -83,53 +109,45 @@ export default class Toast extends Component {
     }
 
     render() {
+        const { children } = this.props
         let pos;
         switch (this.props.position) {
             case 'top':
                 pos = this.props.positionValue;
                 break;
             case 'center':
-                pos = height / 2;
+                pos = height / 2 - this.props.height / 2;
                 break;
             case 'bottom':
                 pos = height - this.props.positionValue;
                 break;
         }
-        
-        const view = this.state.isShow ?
-            <View
-                style={[styles.container, { top: pos }]}
-                pointerEvents="none"
-                >
-                <Animated.View
-                    style={[styles.content, { opacity: this.state.opacityValue }, this.props.style]}
-                    >
-                    <Text style={this.props.textStyle}>{this.state.text}</Text>
+
+        const view = this.state.isShow
+            ?
+            <View style={[styles.toastContainer, { top: pos }]} pointerEvents="none" >
+                <Animated.View style={[{ opacity: this.state.opacityValue }]}>
+                    {
+                        children
+                            ?
+                            children
+                            :
+                            <View style={[styles.toastContent, this.props.style]}>
+                                <Text style={[styles.text, this.props.textStyle]}>{this.state.text}</Text>
+                            </View>
+                    }
+
                 </Animated.View>
-            </View> : null;
+            </View >
+            :
+            null;
         return view;
     }
 }
 
-const styles = StyleSheet.create({
-    container: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        alignItems: 'center',
-    },
-    content: {
-        backgroundColor: 'black',
-        borderRadius: 5,
-        padding: 10,
-    },
-    text: {
-        color: 'white'
-    }
-});
-
 Toast.propTypes = {
     style: View.propTypes.style,
+    height: React.PropTypes.number,
     position: React.PropTypes.oneOf([
         'top',
         'center',
@@ -143,10 +161,11 @@ Toast.propTypes = {
 }
 
 Toast.defaultProps = {
-    position: 'bottom',
+    position: 'center',
     textStyle: styles.text,
     positionValue: 120,
-    fadeInDuration: 500,
-    fadeOutDuration: 500,
-    opacity: 1
+    fadeInDuration: 1000,
+    fadeOutDuration: 1000,
+    height: 284,
+    opacity: 0.8
 }
